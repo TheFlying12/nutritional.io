@@ -1,17 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import openai
-import os
-from dotenv import load_dotenv
+from openai import OpenAI
+# import os
+# from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
-load_dotenv()
+# load_dotenv()
 
-openai_key = os.getenv("OPENAI_KEY")
+# openai_key = os.getenv("OPENAI_KEY")
 
-print(openai_key)
-
-openai.api_key = openai_key
+# openai.api_key = openai_key
 
 app = FastAPI()
 
@@ -50,14 +48,21 @@ async def generate_meal_plan(data: NutritionRequest):
         Provide a detailed plan.
         """
 
-        # Call OpenAI API
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=500
-        )
+        #from openai import OpenAI
+        client = OpenAI()
+
+        completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+        {"role": "developer", "content": "You are a dietician that should be polite and helpful."},
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
+)
 
         # Return the generated meal plan
-        return {"meal_plan": response.choices[0].text.strip()}
+        return {"meal_plan": completion.choices[0].text.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
