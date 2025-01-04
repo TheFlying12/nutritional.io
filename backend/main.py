@@ -63,6 +63,6 @@ async def generate_meal_plan(data: NutritionRequest):
 )
 
         # Return the generated meal plan
-        return {"meal_plan": completion.choices[0].text.strip()}
+        return {"meal_plan": completion.choices[0].message}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
