@@ -4,29 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nutritional.io</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-        }
-        input, select, textarea, button {
-            margin-bottom: 15px;
-            width: 100%;
-            padding: 10px;
-            font-size: 1rem;
-        }
-        .hidden {
-            display: none;
-        }
-        .info {
-            font-size: 0.9rem;
-            color: gray;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>Nutritional.io</h1>
@@ -34,15 +12,15 @@
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required>
 
-        <label for="age">Age:</label>
+        <label for="age">Age (years):</label>
         <input type="number" id="age" name="age" required>
 
-        <label for="height">Height (in cm):</label>
+        <label for="height">Height (in feet 'inches):</label>
         <input type="number" id="height" name="height" required>
 
-        <label for="weight">Body Weight (dry):</label>
+        <label for="weight">Current Body Weight:</label>
         <input type="number" id="weight" name="weight" required>
-        <p class="info">* Ideally fasted weight, think in the morning right after you wake up</p>
+        <p>* Ideally fasted weight, think in the morning right after you wake up</p>
 
         <label for="goal">Goal:</label>
         <select id="goal" name="goal" required>
@@ -57,53 +35,12 @@
             <option value="tweaks">Want Some Tweaks</option>
         </select>
 
-        <div id="current-diet-div" class="hidden">
-            <label for="current-diet">What does your current diet look like?</label>
-            <textarea id="current-diet" name="current-diet" rows="4"></textarea>
-        </div>
+        <label for="current-diet">What does your current diet look like? (Optional)</label>
+        <textarea id="current-diet" name="current-diet"></textarea>
 
-        <button type="submit">Submit</button>
+        <button type="submit">Generate Meal Plan</button>
     </form>
 
-    <script>
-        const form = document.getElementById("nutrition-form");
-        const planType = document.getElementById("plan-type");
-        const currentDietDiv = document.getElementById("current-diet-div");
-
-        // Show/Hide the "current diet" prompt based on selection
-        planType.addEventListener("change", () => {
-            if (planType.value === "tweaks") {
-                currentDietDiv.classList.remove("hidden");
-            } else {
-                currentDietDiv.classList.add("hidden");
-            }
-        });
-
-        // Submit form data
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
-
-            const data = {
-                name: document.getElementById("name").value,
-                age: document.getElementById("age").value,
-                height: document.getElementById("height").value,
-                weight: document.getElementById("weight").value,
-                goal: document.getElementById("goal").value,
-                planType: document.getElementById("plan-type").value,
-                currentDiet: document.getElementById("current-diet").value || null,
-            };
-
-            const response = await fetch("http://127.0.0.1:8000/generate-meal-plan", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-            alert(`Meal Plan:\n\n${result.meal_plan}`);
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
