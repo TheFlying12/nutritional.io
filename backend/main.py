@@ -1,15 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import OpenAI
-# import os
-# from dotenv import load_dotenv
+import os
+from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
-# load_dotenv()
+load_dotenv()
 
-# openai_key = os.getenv("OPENAI_KEY")
+openai_key = os.getenv("OPENAI_KEY")
 
-# openai.api_key = openai_key
 
 app = FastAPI()
 
@@ -49,7 +48,8 @@ async def generate_meal_plan(data: NutritionRequest):
         """
 
         #from openai import OpenAI
-        client = OpenAI()
+        #client = OpenAI()
+        client = OpenAI(api_key=openai_key)
 
         completion = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -64,5 +64,31 @@ async def generate_meal_plan(data: NutritionRequest):
 
         # Return the generated meal plan
         return {"meal_plan": completion.choices[0].message}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class FollowUpRequest(BaseModel):
+    conversation: str
+
+@app.post("/follow-up")
+async def follow_up(request: FollowUpRequest):
+    try:
+        client = OpenAI(api_key=openai_key)
+
+        completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+        {"role": "developer", "content": "You are a dietician that should be polite and helpful."},
+        {
+            "role": "user",
+            "content": request.conversation
+        }
+    ]
+)
+        # Return the generated meal plan
+        return {"follow_up": completion.choices[0].message}
+
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
