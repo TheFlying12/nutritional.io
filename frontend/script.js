@@ -13,7 +13,7 @@ if (document.getElementById("nutrition-form")) {
             weight: document.getElementById("weight").value,
             goal: document.getElementById("goal").value,
             planType: document.getElementById("plan-type").value,
-            currentDiet: document.getElementById("current-diet").value || null,
+            currentDiet: document.getElementById("current-diet").value || "",
         };
 
         // Call backend to generate meal plan

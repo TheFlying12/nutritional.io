@@ -48,8 +48,8 @@ async def generate_meal_plan(data: NutritionRequest):
         """
 
         #from openai import OpenAI
-        #client = OpenAI()
-        client = OpenAI(api_key=openai_key)
+        client = OpenAI()
+        #client = OpenAI(api_key=openai_key)
 
         completion = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -74,8 +74,8 @@ class FollowUpRequest(BaseModel):
 @app.post("/follow-up")
 async def follow_up(request: FollowUpRequest):
     try:
-        client = OpenAI(api_key=openai_key)
-
+        #client = OpenAI(api_key=openai_key)
+        client = OpenAI()
         completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -87,7 +87,7 @@ async def follow_up(request: FollowUpRequest):
     ]
 )
         # Return the generated meal plan
-        return {"follow_up": completion.choices[0].message}
+        return {"follow_up": completion.choices[0].message.content}
 
     
     except Exception as e:
