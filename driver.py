@@ -3,7 +3,7 @@ import os
 import time
 
 # Paths to the frontend and backend directories
-FRONTEND_PORT = 5500
+FRONTEND_PORT = 8080
 BACKEND_PORT = 8000
 
 def start_frontend():
