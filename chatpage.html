@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat - Nutritional.io</title>
+    <title>Nutrition.io - Chat</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Your Meal Plan</h1>
-    <div class="chat-box" id="chat-box"></div>
-    <textarea id="user-message" placeholder="Ask follow-up questions or provide feedback..."></textarea>
-    <button id="send-message">Send</button>
-
+    <div class="container">
+        <h1>Your Meal Plan & Chat</h1>
+        <div id="chat-box"></div>
+        <div class="chat-input">
+            <input type="text" id="user-message" placeholder="Type your message...">
+            <button id="send-message">Send</button>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

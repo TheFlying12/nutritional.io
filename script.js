@@ -1,84 +1,209 @@
-// For index.html: Form submission logic
-if (document.getElementById("nutrition-form")) {
-    const form = document.getElementById("nutrition-form");
+// Shared utilities
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        // Collect form data
-        const formData = {
-            name: document.getElementById("name").value,
-            age: document.getElementById("age").value,
-            height: document.getElementById("height").value,
-            weight: document.getElementById("weight").value,
-            goal: document.getElementById("goal").value,
-            planType: document.getElementById("plan-type").value,
-            currentDiet: document.getElementById("current-diet").value || "",
-        };
-
-        // Call backend to generate meal plan
-        const response = await fetch("http://127.0.0.1:8000/generate-meal-plan", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-        });
-
-        const mealPlan = await response.text();
-
-        // Store meal plan and navigate to chat page
-        localStorage.setItem("mealPlan", mealPlan);
-        window.location.href = "chatpage.html";
-    });
+// Helper functions
+function createMessageElement(text, className = '') {
+    const div = document.createElement('div');
+    div.classList.add('chat-message', className);
+    div.textContent = text;
+    return div;
 }
 
-// For chat.html: Chat page logic
-if (document.getElementById("chat-box")) {
-    const chatBox = document.getElementById("chat-box");
-    const userMessageInput = document.getElementById("user-message");
-    const sendMessageButton = document.getElementById("send-message");
+async function makeApiRequest(endpoint, data) {
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
 
-    // Load initial meal plan
-    const mealPlan = localStorage.getItem("mealPlan");
-    if (mealPlan) {
-        const message = document.createElement("div");
-        message.classList.add("chat-message");
-        message.textContent = mealPlan;
-        chatBox.appendChild(message);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status} - ${await response.text()}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// Form handling (index.html)
+class NutritionForm {
+    constructor() {
+        this.form = document.getElementById('nutrition-form');
+        if (this.form) {
+            this.initializeForm();
+        }
     }
 
-    let conversation = [
-        { role: "assistant", content: mealPlan },
-    ];
+    initializeForm() {
+        this.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitButton = this.form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
 
-    // Handle user follow-up messages
-    sendMessageButton.addEventListener("click", async () => {
-        const userMessage = userMessageInput.value;
+            try {
+                const formData = this.collectFormData();
+                await this.submitForm(formData);
+            } catch (error) {
+                alert('Error generating meal plan. Please try again.');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    }
+
+    collectFormData() {
+        return {
+            name: document.getElementById('name').value,
+            age: document.getElementById('age').value,
+            height: document.getElementById('height').value,
+            weight: document.getElementById('weight').value,
+            goal: document.getElementById('goal').value,
+            planType: document.getElementById('plan-type').value,
+            currentDiet: document.getElementById('current-diet').value || '',
+        };
+    }
+
+    async submitForm(formData) {
+        try {
+            console.log('Submitting form data:', formData);
+            const response = await makeApiRequest('/generate-meal-plan', formData);
+            console.log('Received response:', response); // Log the entire response
+            
+            if (!response.mealPlan) {
+                throw new Error('No meal plan in response');
+            }
+            
+            localStorage.setItem('mealPlan', response.mealPlan);
+            window.location.href = 'chatpage.html';
+        } catch (error) {
+            console.error('Form submission error:', error);
+            throw error; // Re-throw to trigger the error handling in initializeForm
+        }
+    }
+}
+
+// Chat handling (chat.html)
+class ChatInterface {
+    constructor() {
+        this.chatBox = document.getElementById('chat-box');
+        this.userMessageInput = document.getElementById('user-message');
+        this.sendMessageButton = document.getElementById('send-message');
+        
+        if (this.chatBox) {
+            this.initializeChat();
+        }
+    }
+
+    initializeChat() {
+        const mealPlan = localStorage.getItem('mealPlan');
+        if (mealPlan) {
+            this.displayMessage(mealPlan, 'assistant-message');
+        }
+
+        this.conversation = [
+            { role: 'system', content: 'You are a dietician that should be polite and helpful.' }
+        ];
+
+        if (mealPlan) {
+            this.conversation.push({ role: 'assistant', content: mealPlan });
+        }
+
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        this.sendMessageButton.addEventListener('click', () => this.handleSendMessage());
+        
+        this.userMessageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.handleSendMessage();
+            }
+        });
+    }
+
+    displayMessage(text, className) {
+        const messageElement = createMessageElement(text, className);
+        this.chatBox.appendChild(messageElement);
+        this.chatBox.scrollTop = this.chatBox.scrollHeight;
+    }
+
+    async handleSendMessage() {
+        const userMessage = this.userMessageInput.value.trim();
         if (!userMessage) return;
 
-        // Add user message to chat
-        const userDiv = document.createElement("div");
-        userDiv.classList.add("chat-message");
-        userDiv.textContent = `You: ${userMessage}`;
-        chatBox.appendChild(userDiv);
+        this.sendMessageButton.disabled = true;
+        this.userMessageInput.value = '';
 
-        conversation.push({ role: "user", content: userMessage });
-        userMessageInput.value = "";
+        try {
+            // Display user message
+            this.displayMessage(`You: ${userMessage}`, 'user-message');
+            this.conversation.push({ role: 'user', content: userMessage });
 
-        // Send user message to backend
-        const response = await fetch("http://127.0.0.1:8000/follow-up", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ conversation }),
-        });
+            // Add loading indicator
+            const loadingElement = createMessageElement('Assistant is typing...', 'loading-message');
+            this.chatBox.appendChild(loadingElement);
 
-        const data = await response.text();
+            // Get assistant response
+            const response = await makeApiRequest('/follow-up', { conversation: this.conversation });
+            
+            // Remove loading indicator
+            loadingElement.remove();
 
-        // Add backend response to chat
-        const assistantDiv = document.createElement("div");
-        assistantDiv.classList.add("chat-message");
-        assistantDiv.textContent = `Assistant: ${data.response}`;
-        chatBox.appendChild(assistantDiv);
+            // Display assistant response
+            if (response && response.response) {
+                this.displayMessage(`Assistant: ${response.response}`, 'assistant-message');
+                this.conversation.push({ role: 'assistant', content: response.response });
+            } else {
+                throw new Error('Invalid response format');
+            }
 
-        conversation.push({ role: "assistant", content: data });
-    });
+        } catch (error) {
+            console.error('Chat Error:', error);
+            this.displayMessage('Error: Unable to get response. Please try again.', 'error-message');
+        } finally {
+            this.sendMessageButton.disabled = false;
+            this.userMessageInput.focus();
+        }
+    }
 }
+
+// Initialize appropriate handler based on current page
+document.addEventListener('DOMContentLoaded', () => {
+    new NutritionForm();
+    new ChatInterface();
+});
+
+// Add styles
+const styles = `
+    .chat-message {
+        margin: 10px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    
+    .user-message {
+        background-color: #e3f2fd;
+    }
+    
+    .assistant-message {
+        background-color: #f5f5f5;
+    }
+    
+    .error-message {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+    
+    .loading-message {
+        background-color: #f5f5f5;
+        font-style: italic;
+    }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = styles;
+document.head.appendChild(styleSheet);
