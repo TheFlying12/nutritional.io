@@ -1,5 +1,5 @@
 // Shared utilities
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_URL = 'https://your-backend-domain.com';
 
 // Helper functions
 function createMessageElement(text, className = '') {
@@ -9,16 +9,25 @@ function createMessageElement(text, className = '') {
     return div;
 }
 
+// Update the makeApiRequest function to include authentication
 async function makeApiRequest(endpoint, data) {
+    const headers = { 'Content-Type': 'application/json' };
+    const token = AuthManager.getToken();
+    
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const response = await fetch(`http://localhost:8000${endpoint}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(data),
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status} - ${await response.text()}`);
+            const errorData = await response.json();
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
         }
 
         return await response.json();
@@ -70,17 +79,19 @@ class NutritionForm {
         try {
             console.log('Submitting form data:', formData);
             const response = await makeApiRequest('/generate-meal-plan', formData);
-            console.log('Received response:', response); // Log the entire response
+            console.log('Received response:', response);
             
             if (!response.mealPlan) {
-                throw new Error('No meal plan in response');
+                console.error('No meal plan in response:', response);
+                throw new Error('Invalid response format');
             }
             
             localStorage.setItem('mealPlan', response.mealPlan);
             window.location.href = 'chatpage.html';
         } catch (error) {
             console.error('Form submission error:', error);
-            throw error; // Re-throw to trigger the error handling in initializeForm
+            alert(`Error generating meal plan: ${error.message}`);
+            throw error;
         }
     }
 }
@@ -92,9 +103,23 @@ class ChatInterface {
         this.userMessageInput = document.getElementById('user-message');
         this.sendMessageButton = document.getElementById('send-message');
         
+        // Initialize marked options
+        marked.setOptions({
+            breaks: true,  // Convert \n to <br>
+            gfm: true     // Enable GitHub Flavored Markdown
+        });
+        
         if (this.chatBox) {
             this.initializeChat();
         }
+    }
+
+    displayMessage(text, className) {
+        const messageElement = createMessageElement(text, className);
+        // Use marked to render markdown
+        messageElement.innerHTML = marked.parse(text);
+        this.chatBox.appendChild(messageElement);
+        this.chatBox.scrollTop = this.chatBox.scrollHeight;
     }
 
     initializeChat() {
@@ -207,3 +232,55 @@ const styles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = styles;
 document.head.appendChild(styleSheet);
+
+
+class AuthManager {
+    static token = null;
+
+    static async login(username, password) {
+        const response = await fetch(`${API_URL}/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                username: username,
+                password: password
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Login failed');
+        }
+
+        const data = await response.json();
+        this.token = data.access_token;
+        localStorage.setItem('token', this.token);
+        return this.token;
+    }
+
+    static async register(formData) {
+        const response = await fetch(`${API_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Registration failed');
+        }
+
+        return await response.json();
+    }
+
+    static getToken() {
+        if (!this.token) {
+            this.token = localStorage.getItem('token');
+        }
+        return this.token;
+    }
+
+    static logout() {
+        this.token = null;
+        localStorage.removeItem('token');
+        window.location.href = 'index.html';
+    }
+}

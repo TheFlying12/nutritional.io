@@ -78,13 +78,6 @@ button:hover {
 .chat-input button {
     width: auto;
 }
-
-.chat-message {
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 4px;
-}
-
 .user-message {
     background-color: #e3f2fd;
 }
@@ -101,4 +94,17 @@ button:hover {
 .loading-message {
     background-color: #f5f5f5;
     font-style: italic;
+}
+.chat-message h1, .chat-message h2, .chat-message h3 {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.chat-message p {
+    margin-bottom: 0.5em;
+}
+
+.chat-message ul, .chat-message ol {
+    margin-left: 1.5em;
+    margin-bottom: 0.5em;
 }
