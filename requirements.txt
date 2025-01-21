@@ -4,6 +4,8 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-dotenv
 sqlalchemy
+sqlalchemy-utils
 psycopg2-binary
 python-multipart
 openai
+bcrypt

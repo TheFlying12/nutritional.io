@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text
+from sqlalchemy import Column, Integer, String, Float, Text, Date
 from sqlalchemy.ext.declarative import declarative_base
 from passlib.context import CryptContext
 
@@ -12,7 +12,9 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    name = Column(String)
+    first_name = Column(String)
+    last_name = Column(String)
+    birthday = Column(Date)
     age = Column(Integer)
     height = Column(Float)
     weight = Column(Float)
@@ -24,4 +26,10 @@ class User(Base):
         return pwd_context.hash(password)
     
     def verify_password(self, plain_password):
-        return pwd_context.verify(plain_password, self.hashed_password)
+        try:
+            result = pwd_context.verify(plain_password, self.hashed_password)
+            print(f"Password verification result: {result}")
+            return result
+        except Exception as e:
+            print(f"Password verification error: {str(e)}")
+            return False
