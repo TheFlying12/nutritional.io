@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition.io - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Dashboard</h1>
+            <div class="user-info">
+                <span id="user-display"></span>
+                <button onclick="AuthManager.logout()" class="logout-btn">Logout</button>
+            </div>
+        </div>
+        
+        <div id="user-details" class="user-details-panel">
+            <!-- User details will be displayed here -->
+        </div>
+
+        <div id="meal-plan-section" class="meal-plan-panel">
+            <h2>Your Current Meal Plan</h2>
+            <div id="current-meal-plan">
+                <!-- Meal plan will be displayed here -->
+            </div>
+            
+            <div class="action-buttons">
+                <button onclick="window.location.href='index.html'" class="primary-btn">Generate New Plan</button>
+                <button onclick="showTweakForm()" class="secondary-btn">Request Tweaks</button>
+            </div>
+        </div>
+
+        <div id="tweak-form" class="form-panel" style="display: none;">
+            <h3>Request Meal Plan Tweaks</h3>
+            <textarea id="tweak-request" placeholder="Describe what changes you'd like to make to your current meal plan..."></textarea>
+            <button onclick="submitTweakRequest()" class="primary-btn">Submit Request</button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
