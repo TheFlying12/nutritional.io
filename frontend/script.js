@@ -1,5 +1,5 @@
 // Shared utilities
-const API_URL = 'https://your-backend-domain.com';
+const API_BASE_URL = 'https://your-backend-url.herokuapp.com';
 
 // Helper functions
 function createMessageElement(text, className = '') {
@@ -12,14 +12,14 @@ function createMessageElement(text, className = '') {
 // Update the makeApiRequest function
 async function makeApiRequest(endpoint, data) {
     const headers = { 'Content-Type': 'application/json' };
-    const token = localStorage.getItem('token');  // Changed from AuthManager.getToken()
+    const token = localStorage.getItem('token');
     
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
     try {
-        const response = await fetch(`http://localhost:8000${endpoint}`, {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(data),
