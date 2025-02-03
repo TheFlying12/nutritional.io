@@ -3,7 +3,7 @@ import sys
 import time
 import os
 import platform
-import shutil
+import argparse
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 from backend.config import DATABASE_URL
@@ -100,9 +100,15 @@ def start_postgres():
         print("Unsupported operating system for automatic PostgreSQL startup")
         print("Please ensure PostgreSQL is running manually")
 
-def start_fastapi():
+def start_fastapi(debug=False):
     print(f"Starting FastAPI application on port {BACKEND_PORT}")
-    return subprocess.Popen(["uvicorn", "backend.main:app", "--reload", f"--port={BACKEND_PORT}"])
+    command = ["uvicorn", "backend.main:app", "--reload", f"--port={BACKEND_PORT}"]
+    
+    if debug:
+        command.append("--log-level=debug")
+        print("Running FastAPI in DEBUG mode.")
+
+    return subprocess.Popen(command)
 
 def check_env_file():
     env_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
@@ -113,6 +119,10 @@ def check_env_file():
     return True
 
 def main():
+    parser = argparse.ArgumentParser(description="Start the Nutrition.io app.")
+    parser.add_argument("-d", "--debug", action="store_true", help="Run FastAPI backend in debug mode")
+    args = parser.parse_args()
+
     try:
         # Check environment setup
         if not check_env_file():
@@ -134,7 +144,7 @@ def main():
         print(f"\nApplication running at: http://localhost:{FRONTEND_PORT}/login.html")
         
         # Start FastAPI
-        backend_process = start_fastapi()
+        backend_process = start_fastapi(debug=args.debug)
         print(f"Backend running at: http://localhost:{BACKEND_PORT}")
         print("\nPress Ctrl+C to stop all servers...")
         
