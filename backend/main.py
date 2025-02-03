@@ -60,14 +60,14 @@ if os.getenv("ENVIRONMENT") == "development":
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["*"],  # Allow all origins (adjust later for production)
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow OPTIONS
+    allow_headers=["*"],  # Allow all headers
 )
 
 # Force HTTPS
-app.add_middleware(HTTPSRedirectMiddleware)
+# app.add_middleware(HTTPSRedirectMiddleware)
 
 # Pydantic models
 class UserCreate(BaseModel):
@@ -240,6 +240,12 @@ async def follow_up(request: FollowUpRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+# OPTIONS handler
+@app.options("/register")
+async def register_options():
+    return {}  # Empty response is fine - CORS middleware handles the headers
 
 # New user registration endpoint
 @app.post("/register")
