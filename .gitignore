@@ -1,2 +1,15 @@
 .env
 envAPI.sh
+__pycache__/
+*.py[cod]
+*.pyc
+*.db
+*.sqlite
+*.sqlite3
+
+# Common Python ignores
+venv/
+env/
+*.egg-info/
+build/
+dist/
