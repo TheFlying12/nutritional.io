@@ -3,7 +3,7 @@ import sys
 import time
 import os
 import platform
-import shutil
+import argparse
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 from backend.config import DATABASE_URL
@@ -78,31 +78,41 @@ def start_postgres():
 
     pg_isready = os.path.join(pg_bin, "pg_isready")
     
-    if system == "darwin":  # macOS
-        try:
-            subprocess.run([pg_isready], check=True)
-            print("PostgreSQL is already running")
-        except subprocess.CalledProcessError:
-            print("Starting PostgreSQL...")
-            subprocess.run(["brew", "services", "start", "postgresql"])
-            time.sleep(3)
-    
-    elif system == "linux":
-        try:
-            subprocess.run([pg_isready], check=True)
-            print("PostgreSQL is already running")
-        except subprocess.CalledProcessError:
-            print("Starting PostgreSQL...")
-            subprocess.run(["sudo", "service", "postgresql", "start"])
-            time.sleep(3)
-    
-    else:
-        print("Unsupported operating system for automatic PostgreSQL startup")
-        print("Please ensure PostgreSQL is running manually")
+    try:
+        # Check if PostgreSQL is already running
+        subprocess.run([pg_isready], check=True)
+        print("PostgreSQL is already running")
+    except subprocess.CalledProcessError:
+        print("Starting PostgreSQL...")
+        
+        if system == "linux":
+            try:
+                # For systemd-based systems
+                subprocess.run(["sudo", "systemctl", "start", "postgresql"], check=True)
+                print("PostgreSQL started successfully")
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to start PostgreSQL: {str(e)}")
+                print("Try manual start with:")
+                print("sudo systemctl start postgresql")
+        elif system == "darwin":  # macOS
+            try:
+                subprocess.run(["brew", "services", "start", "postgresql"])
+                print("PostgreSQL started successfully")
+            except subprocess.CalledProcessError:
+                print(f"Failed to start PostgreSQL")
+                print("Try manual start with:")
+                print("sudo brew servieces start postgresql")
+        time.sleep(3)  # Wait for service to start 
 
-def start_fastapi():
+def start_fastapi(debug=False):
     print(f"Starting FastAPI application on port {BACKEND_PORT}")
-    return subprocess.Popen(["uvicorn", "backend.main:app", "--reload", f"--port={BACKEND_PORT}"])
+    command = ["uvicorn", "backend.main:app", "--reload", f"--port={BACKEND_PORT}"]
+    
+    if debug:
+        command.append("--log-level=debug")
+        print("Running FastAPI in DEBUG mode.")
+
+    return subprocess.Popen(command)
 
 def check_env_file():
     env_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
@@ -113,6 +123,10 @@ def check_env_file():
     return True
 
 def main():
+    parser = argparse.ArgumentParser(description="Start the Nutrition.io app.")
+    parser.add_argument("-d", "--debug", action="store_true", help="Run FastAPI backend in debug mode")
+    args = parser.parse_args()
+
     try:
         # Check environment setup
         if not check_env_file():
@@ -134,7 +148,7 @@ def main():
         print(f"\nApplication running at: http://localhost:{FRONTEND_PORT}/login.html")
         
         # Start FastAPI
-        backend_process = start_fastapi()
+        backend_process = start_fastapi(debug=args.debug)
         print(f"Backend running at: http://localhost:{BACKEND_PORT}")
         print("\nPress Ctrl+C to stop all servers...")
         

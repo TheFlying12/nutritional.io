@@ -1,5 +1,5 @@
 // Shared utilities
-const API_BASE_URL = 'https://your-backend-url.herokuapp.com';
+const API_BASE_URL = 'http://localhost:8000';
 
 // Helper functions
 function createMessageElement(text, className = '') {

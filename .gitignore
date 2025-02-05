@@ -1,2 +1,24 @@
-.env
+# Common Python ignores
+venv/
+env/
+*.egg-info/
+build/
+dist/__pycache__/
+
+# OS-generated files
+.DS_Store
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Node.js dependencies
+node_modules/
+package-lock.json
+frontend/node_modules
+
+# Other build artifacts
+*.log
+backend/env
+test.db
 envAPI.sh
