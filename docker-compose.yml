@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: nutrition_user
+      POSTGRES_PASSWORD: nutrition_pass
+      POSTGRES_DB: nutrition_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nutrition_user -d nutrition_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://nutrition_user:nutrition_pass@postgres/nutrition_db
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["python", "driver.py", "--clear-db"]
+
+volumes:  # <-- Add this root-level volumes declaration
+  postgres_data:
