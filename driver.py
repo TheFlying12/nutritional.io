@@ -69,40 +69,41 @@ def initialize_database():
     print("Database tables created successfully")
 
 def start_postgres():
-    system = platform.system().lower()
-    pg_bin = get_pg_bin_path()
+    pass
+    # system = platform.system().lower()
+    # pg_bin = get_pg_bin_path()
     
-    if not pg_bin:
-        print("PostgreSQL binaries not found. Please ensure PostgreSQL is installed correctly.")
-        return
+    # if not pg_bin:
+    #     print("PostgreSQL binaries not found. Please ensure PostgreSQL is installed correctly.")
+    #     return
 
-    pg_isready = os.path.join(pg_bin, "pg_isready")
+    # pg_isready = os.path.join(pg_bin, "pg_isready")
     
-    try:
-        # Check if PostgreSQL is already running
-        subprocess.run([pg_isready], check=True)
-        print("PostgreSQL is already running")
-    except subprocess.CalledProcessError:
-        print("Starting PostgreSQL...")
+    # try:
+    #     # Check if PostgreSQL is already running
+    #     subprocess.run([pg_isready], check=True)
+    #     print("PostgreSQL is already running")
+    # except subprocess.CalledProcessError:
+    #     print("Starting PostgreSQL...")
         
-        if system == "linux":
-            try:
-                # For systemd-based systems
-                subprocess.run(["sudo", "systemctl", "start", "postgresql"], check=True)
-                print("PostgreSQL started successfully")
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to start PostgreSQL: {str(e)}")
-                print("Try manual start with:")
-                print("sudo systemctl start postgresql")
-        elif system == "darwin":  # macOS
-            try:
-                subprocess.run(["brew", "services", "start", "postgresql"])
-                print("PostgreSQL started successfully")
-            except subprocess.CalledProcessError:
-                print(f"Failed to start PostgreSQL")
-                print("Try manual start with:")
-                print("sudo brew servieces start postgresql")
-        time.sleep(3)  # Wait for service to start 
+    #     if system == "linux":
+    #         try:
+    #             # For systemd-based systems
+    #             subprocess.run(["sudo", "systemctl", "start", "postgresql"], check=True)
+    #             print("PostgreSQL started successfully")
+    #         except subprocess.CalledProcessError as e:
+    #             print(f"Failed to start PostgreSQL: {str(e)}")
+    #             print("Try manual start with:")
+    #             print("sudo systemctl start postgresql")
+    #     elif system == "darwin":  # macOS
+    #         try:
+    #             subprocess.run(["brew", "services", "start", "postgresql"])
+    #             print("PostgreSQL started successfully")
+    #         except subprocess.CalledProcessError:
+    #             print(f"Failed to start PostgreSQL")
+    #             print("Try manual start with:")
+    #             print("sudo brew servieces start postgresql")
+    #     time.sleep(3)  # Wait for service to start 
 
 def start_fastapi(debug=False):
     print(f"Starting FastAPI application on port {BACKEND_PORT}")
@@ -125,6 +126,7 @@ def check_env_file():
 def main():
     parser = argparse.ArgumentParser(description="Start the Nutrition.io app.")
     parser.add_argument("-d", "--debug", action="store_true", help="Run FastAPI backend in debug mode")
+    parser.add_argument("--clear-db", action="store_true", help="Clear the database on startup")
     args = parser.parse_args()
 
     try:
@@ -135,9 +137,8 @@ def main():
         # Start PostgreSQL
         start_postgres()
         
-        # Ask if user wants to clean database
-        response = input("Do you want to clear the database? (y/n): ").lower()
-        if response == 'y':
+        # Database cleanup
+        if args.clear_db:
             cleanup_database()
         
         # Initialize database
@@ -155,15 +156,7 @@ def main():
         # Wait for processes
         frontend_process.wait()
         backend_process.wait()
-        
-    except KeyboardInterrupt:
-        print("\nShutting down servers...")
-        frontend_process.terminate()
-        backend_process.terminate()
-        sys.exit(0)
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        sys.exit(1)
-
+    except: 
+        pass
 if __name__ == "__main__":
     main()

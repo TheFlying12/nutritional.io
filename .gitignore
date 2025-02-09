@@ -19,6 +19,6 @@ frontend/node_modules
 
 # Other build artifacts
 *.log
-backend/env
 test.db
 envAPI.sh
+backend/.env
