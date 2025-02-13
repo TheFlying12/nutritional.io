@@ -11,8 +11,8 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from typing import Optional
-from backend.database import SessionLocal, engine
-from backend import models
+from database import SessionLocal, engine
+import models
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 
 # Load environment variables
@@ -20,7 +20,7 @@ load_dotenv()
 openai_key = os.getenv("OPENAI_KEY")
 
 # Initialize FastAPI app
-app = FastAPI(title="Nutrition.io API")
+app = FastAPI(title="Nutritional.io API")
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -52,19 +52,17 @@ ALLOWED_ORIGINS = [
     "https://your-frontend-domain.com",
 ]
 
-if os.getenv("ENVIRONMENT") == "development":
-    ALLOWED_ORIGINS.extend([
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-    ])
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*")
+ALLOWED_ORIGINS_LIST = ALLOWED_ORIGINS.split(",") if ALLOWED_ORIGINS != "*" else ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (adjust later for production)
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],  # Allow OPTIONS
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
 
 # Force HTTPS
 # app.add_middleware(HTTPSRedirectMiddleware)
