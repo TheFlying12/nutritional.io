@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Test</title>
+</head>
+<body>
+    <h1>JavaScript Test Page</h1>
+    <p>This page tests if JavaScript is working correctly.</p>
+    <button id="test-button">Click Me</button>
+    <div id="result"></div>
+
+    <script>
+        // Simple inline script to test JavaScript functionality
+        document.getElementById('test-button').addEventListener('click', function() {
+            const result = document.getElementById('result');
+            result.textContent = 'JavaScript is working correctly! ' + new Date().toLocaleTimeString();
+        });
+
+        // Auto-execute to show it's loaded
+        document.getElementById('result').textContent = 'Page loaded at: ' + new Date().toLocaleTimeString();
+    </script>
+</body>
+</html>

@@ -1,31 +1,48 @@
 version: '3.8'
 
 services:
-  postgres:
+  db:
     image: postgres:13
+    container_name: postgres_db
+    restart: always
+    env_file:
+      - backend/.env  # Load environment variables
     environment:
-      POSTGRES_USER: nutrition_user
-      POSTGRES_PASSWORD: nutrition_pass
-      POSTGRES_DB: nutrition_db
+      POSTGRES_USER: "nutrition_user"
+      POSTGRES_PASSWORD: "nutrition_pass"
+      POSTGRES_DB: "nutrition_db"
+    ports:
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nutrition_user -d nutrition_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - pg_data:/var/lib/postgresql/data
 
-  web:
-    build: .
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend_app
+    depends_on:
+      - db
+    env_file:
+      - backend/.env
     environment:
-      DATABASE_URL: postgresql://nutrition_user:nutrition_pass@postgres/nutrition_db
+      DATABASE_URL: postgresql://nutrition_user:nutrition_pass@db:5432/nutrition_db
     ports:
       - "8000:8000"
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: ["python", "driver.py", "--clear-db"]
+    volumes:
+      - ./backend:/app
+  
 
-volumes:  # <-- Add this root-level volumes declaration
-  postgres_data:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend_app
+    depends_on:
+      - backend
+    ports:
+      - "8080:8080"
+    # Volume mount removed to prevent overriding copied files
+
+volumes:
+  pg_data:
